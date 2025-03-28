@@ -593,9 +593,40 @@ const reexplainCourseContentSchema = {
   required: ["chapterContent"],
 };
 
+
+ const mcqTestSchema = {
+  type: "object",
+  properties: {
+    questions: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          question: { type: "string" },
+          options: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                text: { type: "string" },
+                isCorrect: { type: "boolean" }
+              },
+              required: ["text", "isCorrect"]
+            }
+          },
+          explanation: { type: "string" }
+        },
+        required: ["question", "options", "explanation"]
+      }
+    }
+  },
+  required: ["questions"]
+};
+
 export {
   careerRecommendationsSchema,
   courseContentSchema,
   courseAnalysisSchema,
   reexplainCourseContentSchema,
+  mcqTestSchema,
 };
