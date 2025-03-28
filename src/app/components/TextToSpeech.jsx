@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button } from "@heroui/react"; 
-import { Play, Pause, Square, Volume2 } from "lucide-react"; 
+import { Button } from "@heroui/react";
+import { Play, Pause, Square, Volume2 } from "lucide-react";
+
+// Function to clean Markdown syntax
+const cleanMarkdown = (text) => {
+  return text
+    .replace(/[#_*`~>]/g, "") // Remove Markdown symbols
+    .replace(/\[(.*?)\]\(.*?\)/g, "$1") // Remove links
+    .replace(/!\[.*?\]\(.*?\)/g, "") // Remove images
+    .replace(/>\s*/g, ""); // Remove blockquotes
+};
 
 const TextToSpeech = ({ content }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -15,7 +24,9 @@ const TextToSpeech = ({ content }) => {
     const loadVoices = () => {
       const availableVoices = window.speechSynthesis.getVoices();
       setVoices(availableVoices);
-      const defaultVoice = availableVoices.find((voice) => voice.lang.includes("en"));
+      const defaultVoice = availableVoices.find((voice) =>
+        voice.lang.includes("en")
+      );
       setSelectedVoice(defaultVoice || availableVoices[0]);
     };
 
@@ -23,7 +34,7 @@ const TextToSpeech = ({ content }) => {
     window.speechSynthesis.onvoiceschanged = loadVoices;
 
     return () => {
-      window.speechSynthesis.cancel(); 
+      window.speechSynthesis.cancel();
     };
   }, []);
 
@@ -36,7 +47,6 @@ const TextToSpeech = ({ content }) => {
     if (!contentRef.current || !selectedVoice) return;
 
     if (isPaused) {
-      // If paused, resume from where it stopped
       window.speechSynthesis.resume();
       setIsPaused(false);
       setIsSpeaking(true);
@@ -45,7 +55,8 @@ const TextToSpeech = ({ content }) => {
 
     window.speechSynthesis.cancel(); // Stop any existing speech
 
-    const utterance = new SpeechSynthesisUtterance(contentRef.current);
+    const cleanContent = cleanMarkdown(contentRef.current);
+    const utterance = new SpeechSynthesisUtterance(cleanContent);
     utterance.voice = selectedVoice;
     utterance.rate = 1;
     utterance.pitch = 1;
@@ -53,10 +64,11 @@ const TextToSpeech = ({ content }) => {
 
     utterance.onboundary = (event) => {
       if (event.name === "word") {
-        const words = contentRef.current.split(/\s+/).filter(Boolean);
-        const spokenWords = contentRef.current
+        const words = cleanContent.split(/\s+/).filter(Boolean);
+        const spokenWords = cleanContent
           .substring(0, event.charIndex)
-          .split(/\s+/).filter(Boolean).length;
+          .split(/\s+/)
+          .filter(Boolean).length;
         setProgress((spokenWords / words.length) * 100);
       }
     };
