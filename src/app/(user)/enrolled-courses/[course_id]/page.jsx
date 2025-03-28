@@ -35,6 +35,7 @@ const EnrolledCourse = () => {
   const [chapterMCQ, setChapterMCQ] = useState(null);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [mcqSubmitted, setMcqSubmitted] = useState(false);
+  const [score, setScore] = useState(null);
 
   useEffect(() => {
     // Set the first chapter as active when course data loads
@@ -69,7 +70,7 @@ const EnrolledCourse = () => {
     try {
       const { courseChapters, ...courseOverviewData } = course;
       const mcqResult = await generateChapterMCQ(
-        courseOverviewData, 
+        courseOverviewData,
         activeChapter
       );
       const parsedMCQ = JSON.parse(mcqResult);
@@ -85,14 +86,34 @@ const EnrolledCourse = () => {
 
   const handleAnswerSelect = (questionIndex, optionIndex) => {
     if (mcqSubmitted) return;
-    setSelectedAnswers(prev => ({
+    setSelectedAnswers((prev) => ({
       ...prev,
-      [questionIndex]: optionIndex
+      [questionIndex]: optionIndex,
     }));
   };
 
   const submitMCQ = () => {
+    if (Object.keys(selectedAnswers).length !== chapterMCQ.questions.length) {
+      toast.error("Please answer all questions before submitting!");
+      return;
+    }
+
+    let correctCount = 0;
+    chapterMCQ.questions.forEach((q, index) => {
+      if (q.options[selectedAnswers[index]]?.isCorrect) {
+        correctCount++;
+      }
+    });
+
+    const totalQuestions = chapterMCQ.questions.length;
+    const calculatedScore = Math.round((correctCount / totalQuestions) * 100); // Percentage score
+
+    setScore(calculatedScore);
     setMcqSubmitted(true);
+
+    toast.success(
+      `Quiz submitted! Your Score: ${correctCount}/${totalQuestions} (${calculatedScore}%)`
+    );
   };
 
   const handleRegerateChapterContents = async () => {
@@ -206,7 +227,9 @@ const EnrolledCourse = () => {
                 <div className="prose max-w-none">
                   {activeChapter.chapterContent ? (
                     <>
-                    {activeChapter && <TextToSpeech content={activeChapter?.chapterContent}/> }
+                      {activeChapter && (
+                        <TextToSpeech content={activeChapter?.chapterContent} />
+                      )}
                       <MdChapterContent
                         chapterContent={activeChapter.chapterContent}
                       />
@@ -237,7 +260,7 @@ const EnrolledCourse = () => {
                           >
                             Regenerate ✨
                           </Button>
-                          <Button 
+                          <Button
                             startContent={<CheckCircle2 className="w-5 h-5" />}
                             color="secondary"
                             variant="ghost"
@@ -263,24 +286,33 @@ const EnrolledCourse = () => {
                                 {q.options.map((option, oIndex) => (
                                   <button
                                     key={oIndex}
-                                    onClick={() => handleAnswerSelect(qIndex, oIndex)}
+                                    onClick={() =>
+                                      handleAnswerSelect(qIndex, oIndex)
+                                    }
                                     className={`w-full text-left p-3 rounded-lg border transition-all 
-                                      ${selectedAnswers[qIndex] === oIndex 
-                                        ? (mcqSubmitted 
-                                            ? (option.isCorrect 
-                                                ? 'bg-green-100 border-green-300' 
-                                                : 'bg-red-100 border-red-300')
-                                            : 'bg-purple-100 border-purple-300') 
-                                        : 'hover:bg-gray-50'}`}
+                                      ${
+                                        selectedAnswers[qIndex] === oIndex
+                                          ? mcqSubmitted
+                                            ? option.isCorrect
+                                              ? "bg-green-100 border-green-300"
+                                              : "bg-red-100 border-red-300"
+                                            : "bg-purple-100 border-purple-300"
+                                          : "hover:bg-gray-50"
+                                      }`}
                                   >
                                     {option.text}
                                     {mcqSubmitted && option.isCorrect && (
-                                      <span className="ml-2 text-green-600">✓</span>
+                                      <span className="ml-2 text-green-600">
+                                        ✓
+                                      </span>
                                     )}
-                                    {mcqSubmitted && !option.isCorrect && 
-                                     selectedAnswers[qIndex] === oIndex && (
-                                      <span className="ml-2 text-red-600">✗</span>
-                                    )}
+                                    {mcqSubmitted &&
+                                      !option.isCorrect &&
+                                      selectedAnswers[qIndex] === oIndex && (
+                                        <span className="ml-2 text-red-600">
+                                          ✗
+                                        </span>
+                                      )}
                                   </button>
                                 ))}
                               </div>
@@ -292,10 +324,9 @@ const EnrolledCourse = () => {
                             </div>
                           ))}
                           {!mcqSubmitted && (
-                            <Button 
-                              color="primary" 
+                            <Button
                               onPress={submitMCQ}
-                              className="mt-4 w-full"
+                              className="mt-4 w-full text-white bg-purple-400 hover:bg-purple-500"
                             >
                               Submit Quiz
                             </Button>
