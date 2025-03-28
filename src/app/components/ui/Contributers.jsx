@@ -8,7 +8,7 @@ const Contributers = ({ contributers }) => {
       <AvatarGroup isBordered max={3}>
         {contributers?.map((contributer,index) => (
           <Avatar
-            kay={index}
+            kay={index+1}
             showFallback
             src={contributer?.photoURL}
             alt={contributer?.username}
