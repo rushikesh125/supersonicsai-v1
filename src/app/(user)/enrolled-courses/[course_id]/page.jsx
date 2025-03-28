@@ -20,6 +20,7 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 import regenerateChapterContents from "@/models1/regenerateChapterContentsModel";
 import generateChapterMCQ from "@/models1/generateChapterMCQ";
+import TextToSpeech from "@/app/components/TextToSpeech";
 
 const EnrolledCourse = () => {
   const { course_id } = useParams();
@@ -205,6 +206,7 @@ const EnrolledCourse = () => {
                 <div className="prose max-w-none">
                   {activeChapter.chapterContent ? (
                     <>
+                    {activeChapter && <TextToSpeech content={activeChapter?.chapterContent}/> }
                       <MdChapterContent
                         chapterContent={activeChapter.chapterContent}
                       />
