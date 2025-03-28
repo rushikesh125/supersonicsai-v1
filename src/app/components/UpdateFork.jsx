@@ -10,10 +10,11 @@ import { getCourse } from "@/firebase/courses/read.server";
 import AddChapter from "./AddChapter";
 import EditChapters from "./EditChapters";
 import { BrainCircuit } from "lucide-react";
-import { generateCourse } from "@/models/generateCourse";
+// import { generateCourse } from "@/models/generateCourse";
 import { categoriesList, courseLang, courseLevel } from "@/constants/constants";
 import { getForkedCourse, useForkedCourse } from "@/firebase/fork/read";
 import { updateForkedCourse } from "@/firebase/fork/update";
+import generateCourse from "@/models1/generateCourseModel";
 
 const UpdateFork = () => {
   const user = useSelector((state) => state.user);
@@ -38,14 +39,15 @@ const UpdateFork = () => {
     mergeRequests: [],
   });
 
-  
-
   const fetchCourse = async () => {
-    if (!forkedCourseId ) return;
+    if (!forkedCourseId) return;
 
     setIsLoading(true);
     try {
-      const course = await getForkedCourse({ uid:user?.uid,forkedCourseId:forkedCourseId });
+      const course = await getForkedCourse({
+        uid: user?.uid,
+        forkedCourseId: forkedCourseId,
+      });
       if (course) {
         setData({
           courseTitle: course?.courseTitle || "",
@@ -60,8 +62,8 @@ const UpdateFork = () => {
           isForked: course?.isForked || false,
           forkedFrom: course?.forkedFrom || null,
           mergeRequests: course?.mergeRequests || [],
-          forkedBy:course?.forkedBy || "",
-          forkedCourseId :course?.forkedCourseId || "",
+          forkedBy: course?.forkedBy || "",
+          forkedCourseId: course?.forkedCourseId || "",
         });
         setCourseChapters(course?.courseChapters || []);
       } else {
@@ -98,12 +100,14 @@ const UpdateFork = () => {
     setIsLoading(true);
     try {
       await updateForkedCourse({
-        uid:user?.uid,
+        uid: user?.uid,
         data: data,
         forkedCourseId: forkedCourseId,
         courseChapters: courseChapters,
       });
-      toast.success(`Forked Course updated successfully (ID: ${forkedCourseId})`);
+      toast.success(
+        `Forked Course updated successfully (ID: ${forkedCourseId})`
+      );
       router.push("/my-forks");
     } catch (error) {
       toast.error(error?.message || "Failed to update course");

@@ -8,11 +8,12 @@ import { useSelector } from "react-redux";
 import CustomBtn from "./CustomBtn";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Brain, BrainCircuit, Trash } from "lucide-react";
-import { generateCourse } from "@/models/generateCourse";
+// import { generateCourse } from "@/models/generateCourse";
 import EditChapters from "./EditChapters";
 import MdEditor from "./Md";
 import AddChapter from "./AddChapter";
 import { categoriesList, courseLang, courseLevel } from "@/constants/constants";
+import generateCourse from "@/models1/generateCourseModel";
 
 const CreateCourse = () => {
   const user = useSelector((state) => state.user);

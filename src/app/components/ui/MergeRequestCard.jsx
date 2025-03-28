@@ -296,9 +296,10 @@ import MDEditor from "@uiw/react-md-editor";
 import rehypeSanitize from "rehype-sanitize";
 import rehypeHighlight from "rehype-highlight";
 import toast from "react-hot-toast";
-import { mergeSummaryGenAi } from "@/models/genMRSummary";
+// import { mergeSummaryGenAi } from "@/models/genMRSummary";
 import { useCourse } from "@/firebase/courses/read";
 import { mergeCourse, rejectMergeRequest } from "@/firebase/merge/merge";
+import mergeSummaryGenAi from "@/models1/genMRSummaryModel";
 
 const MergeRequestCard = ({ data, courseId }) => {
   const {

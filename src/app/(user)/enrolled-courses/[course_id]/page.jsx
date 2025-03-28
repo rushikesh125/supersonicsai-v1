@@ -15,9 +15,11 @@ import {
 import MdChapterContent from "@/app/components/MdChapterContent";
 import { Button } from "@heroui/react";
 import PopupChatbot from "@/app/components/PopupChatbot";
-import { regenerateChapterContents } from "@/models/regenerateChaptercontent";
+// import { regenerateChapterContents } from "@/models/regenerateChaptercontent";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import regenerateChapterContents from "@/models1/regenerateChapterContentsModel";
+// import regenerateChapterContents from "@/models1/regenerateChapterContentsModel";
 
 const EnrolledCourse = () => {
   const { course_id } = useParams();
@@ -68,7 +70,7 @@ const EnrolledCourse = () => {
       const regeneratedContents = JSON.parse(await res);
       // console.log(regeneratedContents?.chapterContent)
       if (!regeneratedContents?.chapterContent) {
-       throw new Error("Error Regenerating Course")
+        throw new Error("Error Regenerating Course");
       }
       setActiveChapter((prevContent) => {
         return {
@@ -76,11 +78,11 @@ const EnrolledCourse = () => {
           chapterContent: regeneratedContents?.chapterContent,
         };
       });
-      toast.success("Courrse Regerated")
-      setRegenerationPrompt("")
+      toast.success("Courrse Regerated");
+      setRegenerationPrompt("");
     } catch (error) {
       console.log("Error Regenrating Course Contents");
-      toast.error("Failed to regerate",error?.message)
+      toast.error("Failed to regerate", error?.message);
     } finally {
       setIsLoading(false);
     }
@@ -92,7 +94,10 @@ const EnrolledCourse = () => {
         <PopupChatbot />
         {/* Header */}
         <div className="w-full p-4 bg-purple-600 text-white sticky top-0 z-40 flex justify-between items-center shadow-md">
-          <Link href={`/course/${course_id}`} className="text-xl md:text-2xl font-semibold truncate">
+          <Link
+            href={`/course/${course_id}`}
+            className="text-xl md:text-2xl font-semibold truncate"
+          >
             {course?.courseTitle}
           </Link>
           <button

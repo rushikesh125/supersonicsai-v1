@@ -10,7 +10,8 @@ import { getCourse } from "@/firebase/courses/read.server";
 import AddChapter from "./AddChapter";
 import EditChapters from "./EditChapters";
 import { BrainCircuit } from "lucide-react";
-import { generateCourse } from "@/models/generateCourse";
+import generateCourse from "@/models1/generateCourseModel";
+// import { generateCourse } from "@/models/generateCourse";
 
 const UpdateCourse = () => {
   const user = useSelector((state) => state.user);

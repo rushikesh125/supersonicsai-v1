@@ -5,7 +5,8 @@ import { Accordion, AccordionItem, Button } from "@heroui/react";
 import { BrainCircuit, Trash } from "lucide-react";
 import MdEditor from "./Md";
 import toast from "react-hot-toast";
-import { generateChapterContent } from "@/models/generateChapterContent";
+import generateChapterContent from "@/models1/courseContentModel";
+// import { generateChapterContent } from "@/models/generateChapterContent";
 
 const EditChapters = ({
   courseData,

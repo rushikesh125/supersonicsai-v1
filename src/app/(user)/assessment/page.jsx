@@ -35,8 +35,10 @@ import { deleteAssessmentField } from "@/firebase/assessment/delete";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 import { Button } from "@heroui/react";
-import { generateCareerPath } from "@/models/generateCareerPath";
+// import { generateCareerPath } from "@/models/generateCareerPath";
+
 import { setRecommendation } from "@/firebase/recommendations/write";
+import generateCareerPath from "@/models1/careerRecommendationsModel";
 
 const SectionNav = ({
   sections,
@@ -123,7 +125,6 @@ const Assessment = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const [isRoadmapExits, setIsRoadmapExits] = useState(false);
   const router = useRouter();
-  
 
   // Section definitions
   const sections = [
