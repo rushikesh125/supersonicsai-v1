@@ -11,15 +11,15 @@ import {
   BookOpen,
   BrainCircuit,
   ConeIcon,
+  CheckCircle2,
 } from "lucide-react";
 import MdChapterContent from "@/app/components/MdChapterContent";
 import { Button } from "@heroui/react";
 import PopupChatbot from "@/app/components/PopupChatbot";
-// import { regenerateChapterContents } from "@/models/regenerateChaptercontent";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import regenerateChapterContents from "@/models1/regenerateChapterContentsModel";
-// import regenerateChapterContents from "@/models1/regenerateChapterContentsModel";
+import generateChapterMCQ from "@/models1/generateChapterMCQ";
 
 const EnrolledCourse = () => {
   const { course_id } = useParams();
@@ -29,6 +29,11 @@ const EnrolledCourse = () => {
   const [regenrationPrompt, setRegenerationPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const contentRef = useRef(null);
+
+  // New state for MCQ
+  const [chapterMCQ, setChapterMCQ] = useState(null);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [mcqSubmitted, setMcqSubmitted] = useState(false);
 
   useEffect(() => {
     // Set the first chapter as active when course data loads
@@ -42,6 +47,10 @@ const EnrolledCourse = () => {
     if (contentRef.current) {
       contentRef.current.scrollTop = 0;
     }
+    // Reset MCQ when chapter changes
+    setChapterMCQ(null);
+    setSelectedAnswers({});
+    setMcqSubmitted(false);
   }, [activeChapter]);
 
   const toggleDrawer = () => {
@@ -53,6 +62,38 @@ const EnrolledCourse = () => {
     // For mobile, close drawer when selecting a chapter
     setIsDrawerOpen(false);
   };
+
+  const handleGenerateMCQ = async () => {
+    setIsLoading(true);
+    try {
+      const { courseChapters, ...courseOverviewData } = course;
+      const mcqResult = await generateChapterMCQ(
+        courseOverviewData, 
+        activeChapter
+      );
+      const parsedMCQ = JSON.parse(mcqResult);
+      setChapterMCQ(parsedMCQ);
+      toast.success("MCQ Generated Successfully!");
+    } catch (error) {
+      console.error("MCQ Generation Error:", error);
+      toast.error("Failed to generate MCQ");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAnswerSelect = (questionIndex, optionIndex) => {
+    if (mcqSubmitted) return;
+    setSelectedAnswers(prev => ({
+      ...prev,
+      [questionIndex]: optionIndex
+    }));
+  };
+
+  const submitMCQ = () => {
+    setMcqSubmitted(true);
+  };
+
   const handleRegerateChapterContents = async () => {
     setIsLoading(true);
     try {
@@ -60,7 +101,6 @@ const EnrolledCourse = () => {
       const courseChapterTitles = courseChapters?.map(
         (chapter) => chapter?.title
       );
-      // console.log({courseData:courseOverviewData,courseChaptersTitles:courseChapterTitles,currentChapter:activeChapter,prompt:regenrationPrompt})
       const res = await regenerateChapterContents({
         courseData: courseOverviewData,
         courseChaptersTitles: courseChapterTitles,
@@ -68,21 +108,18 @@ const EnrolledCourse = () => {
         prompt: regenrationPrompt,
       });
       const regeneratedContents = JSON.parse(await res);
-      // console.log(regeneratedContents?.chapterContent)
       if (!regeneratedContents?.chapterContent) {
         throw new Error("Error Regenerating Course");
       }
-      setActiveChapter((prevContent) => {
-        return {
-          prevContent,
-          chapterContent: regeneratedContents?.chapterContent,
-        };
-      });
-      toast.success("Courrse Regerated");
+      setActiveChapter((prevContent) => ({
+        ...prevContent,
+        chapterContent: regeneratedContents?.chapterContent,
+      }));
+      toast.success("Course Regenerated");
       setRegenerationPrompt("");
     } catch (error) {
-      console.log("Error Regenrating Course Contents");
-      toast.error("Failed to regerate", error?.message);
+      console.log("Error Regenerating Course Contents");
+      toast.error("Failed to regenerate", error?.message);
     } finally {
       setIsLoading(false);
     }
@@ -174,7 +211,7 @@ const EnrolledCourse = () => {
                       <hr className="my-4" />
                       <div>
                         <label className="block text-sm font-semibold text-purple-500 mb-2">
-                          🔮 Dynamiclly Adjust With Ai
+                          🔮 Dynamically Adjust With AI
                         </label>
                         <textarea
                           name="aiPrompt"
@@ -183,21 +220,86 @@ const EnrolledCourse = () => {
                             setRegenerationPrompt(e.target.value)
                           }
                           rows="3"
-                          placeholder="Describe What Adjustments you want in current Chapter Ex: want described in more detail / add more examples "
+                          placeholder="Describe what adjustments you want in current Chapter: e.g., more detail, more examples"
                           className="w-full p-4 border border-purple-300 rounded-xl focus:ring-4 focus:ring-purple-200 focus:border-purple-500 transition-all duration-200 bg-purple-50/50 hover:bg-purple-50"
                         />
-                        <Button
-                          startContent={<BrainCircuit className="w-5 h-5" />}
-                          color="secondary"
-                          isLoading={isLoading}
-                          isDisabled={isLoading}
-                          variant="ghost"
-                          onPress={handleRegerateChapterContents}
-                          className="mt-3 bg-purple-100 text-purple-500 hover:bg-purple-200 font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 transform hover:scale-105"
-                        >
-                          Renerate ✨
-                        </Button>
+                        <div className="flex space-x-3 mt-3">
+                          <Button
+                            startContent={<BrainCircuit className="w-5 h-5" />}
+                            color="secondary"
+                            isLoading={isLoading}
+                            isDisabled={isLoading}
+                            variant="ghost"
+                            onPress={handleRegerateChapterContents}
+                            className="bg-purple-100 text-purple-500 hover:bg-purple-200 font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 transform hover:scale-105"
+                          >
+                            Regenerate ✨
+                          </Button>
+                          <Button 
+                            startContent={<CheckCircle2 className="w-5 h-5" />}
+                            color="secondary"
+                            variant="ghost"
+                            isLoading={isLoading}
+                            onPress={handleGenerateMCQ}
+                            className="bg-green-100 text-green-600 hover:bg-green-200"
+                          >
+                            Generate Chapter Quiz
+                          </Button>
+                        </div>
                       </div>
+
+                      {/* MCQ Section */}
+                      {chapterMCQ && (
+                        <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+                          <h3 className="text-xl font-bold text-purple-600 mb-4">
+                            Chapter Quiz: {activeChapter.title}
+                          </h3>
+                          {chapterMCQ.questions.map((q, qIndex) => (
+                            <div key={qIndex} className="mb-6">
+                              <p className="font-semibold mb-2">{q.question}</p>
+                              <div className="space-y-2">
+                                {q.options.map((option, oIndex) => (
+                                  <button
+                                    key={oIndex}
+                                    onClick={() => handleAnswerSelect(qIndex, oIndex)}
+                                    className={`w-full text-left p-3 rounded-lg border transition-all 
+                                      ${selectedAnswers[qIndex] === oIndex 
+                                        ? (mcqSubmitted 
+                                            ? (option.isCorrect 
+                                                ? 'bg-green-100 border-green-300' 
+                                                : 'bg-red-100 border-red-300')
+                                            : 'bg-purple-100 border-purple-300') 
+                                        : 'hover:bg-gray-50'}`}
+                                  >
+                                    {option.text}
+                                    {mcqSubmitted && option.isCorrect && (
+                                      <span className="ml-2 text-green-600">✓</span>
+                                    )}
+                                    {mcqSubmitted && !option.isCorrect && 
+                                     selectedAnswers[qIndex] === oIndex && (
+                                      <span className="ml-2 text-red-600">✗</span>
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
+                              {mcqSubmitted && (
+                                <p className="mt-2 text-sm italic text-gray-600">
+                                  Explanation: {q.explanation}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                          {!mcqSubmitted && (
+                            <Button 
+                              color="primary" 
+                              onPress={submitMCQ}
+                              className="mt-4 w-full"
+                            >
+                              Submit Quiz
+                            </Button>
+                          )}
+                        </div>
+                      )}
                     </>
                   ) : (
                     <div className="p-4 bg-gray-100 rounded-lg text-gray-600">
@@ -217,8 +319,6 @@ const EnrolledCourse = () => {
     </>
   );
 };
-
-export default EnrolledCourse;
 
 const ChaptersList = ({
   chapters,
@@ -305,3 +405,5 @@ const ChapterItem = ({ chapter, index, isActive, onClick, isMobile }) => {
     </div>
   );
 };
+
+export default EnrolledCourse;
